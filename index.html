@@ -9,7 +9,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body, html { height: 100%; font-family: 'Segoe UI', sans-serif; background-color: #0b0f19; color: #f3f4f6; overflow-x: hidden; }
 
-        /* DISCLAIMER PAGE */
+        /* DISCLAIMER PAGE OVERLAY */
         #disclaimer-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #05070c;
             display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; padding: 20px; text-align: center;
@@ -18,9 +18,8 @@
         .disclaimer-box h1 { font-size: 2.5rem; color: #ef4444; text-transform: uppercase; margin-bottom: 20px; font-weight: 900; }
         .yes-btn { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border: none; padding: 15px 40px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); }
 
-        /* MAIN WEBSITE */
+        /* MAIN WEBSITE CONTAINER */
         #main-website {
-            /* High-quality space photo setup */
             background: linear-gradient(rgba(11, 15, 25, 0.88), rgba(11, 15, 25, 0.88)), 
                         url('https://unsplash.com') no-repeat center center fixed;
             background-size: cover; min-height: 100vh; padding-bottom: 60px;
@@ -81,7 +80,6 @@
 
     <!-- SCREEN 2: THE ACTUAL SITE -->
     <div id="main-website">
-        
         <div class="ticker-wrap">
             <div class="ticker-title">💥 Breaking (This Week)</div>
             <div class="ticker">🚨 WEEKLY RECAP: Scientists officially announce that the weekend has successfully ended • Technical issues reported worldwide as millions realize Monday arrived again 🚨</div>
@@ -97,14 +95,8 @@
         </header>
 
         <div class="container">
-            <!-- News Feed Target -->
             <main id="news-feed">
-                <!-- Static Default News -->
-                <article class="news-card">
-                    <div class="news-meta"><span class="badge-delay">⌛ 3 Days Ago</span></div>
-                    <h2 class="news-title">Local Man Discovers Smartphone "Dark Mode" Option</h2>
-                    <p class="news-content">In a stunning revelation that shocked absolutely nobody, a local user reveals they have finally toggled their settings layout over to dark mode.</p>
-                </article>
+                <!-- Content injected dynamically -->
             </main>
         </div>
 
@@ -128,20 +120,20 @@
     <script>
         let adminMode = false;
 
-        // Load approved and pending news on start
-        window.onload = function() {
+        document.addEventListener("DOMContentLoaded", function() {
             renderFeed();
-        };
+        });
 
         function enterWebsite() {
-            // Instantly remove disclaimer overlay view screen entirely
-            document.getElementById('disclaimer-screen').style.display = 'none';
+            var screen = document.getElementById('disclaimer-screen');
+            if (screen) {
+                screen.style.setProperty('display', 'none', 'important');
+            }
         }
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // User Submits News
         function submitNews() {
             const title = document.getElementById('subTitle').value;
             const delay = document.getElementById('subDelay').value;
@@ -156,7 +148,6 @@
             alert("Submitted! News sent to your admin backlog for review.");
             closeModal('newsModal');
             
-            // Reset input values
             document.getElementById('subTitle').value = '';
             document.getElementById('subDelay').value = '';
             document.getElementById('subContent').value = '';
@@ -164,12 +155,24 @@
             renderFeed();
         }
 
-        // Toggle Admin View to see pending items
-        function toggleAdminView() {adminMode = !adminMode;
-alert(adminMode ? "Admin Mode Active! Scroll down to see items awaiting approval." : "Admin Mode turned off.");
+        // PASSWORD PROTECTED ADMIN TOGGLE BLOCK
+        function toggleAdminView() {
+            if (!adminMode) {
+                // Ask user for access token string
+                const passInput = prompt("Enter Administration Password to access dashboard:");
+                if (passInput === "Prs24.375") {
+                    adminMode = true;
+                    alert("Authentication successful. Admin view active!");
+                } else {
+                    alert("Access Denied: Incorrect password configuration.");
+                    return;
+                }
+            } else {
+                adminMode = false;
+                alert("Admin Mode deactivated.");
+}
 renderFeed();
 }
-// Action Handlers
 function approveItem(id) {
 let pendingList = JSON.parse(localStorage.getItem('pendingNews')) || [];
 let approvedList = JSON.parse(localStorage.getItem('approvedNews')) || [];
@@ -191,16 +194,16 @@ localStorage.setItem('pendingNews', JSON.stringify(pendingList));
 }
 renderFeed();
 }
-// Draw Feed onto the interface
 function renderFeed() {
 const feed = document.getElementById('news-feed');
+if (!feed) return;
 let approvedList = JSON.parse(localStorage.getItem('approvedNews')) || [];
 let pendingList = JSON.parse(localStorage.getItem('pendingNews')) || [];
 let htmlContent = ``;
 if (adminMode && pendingList.length > 0) {
-htmlContent += <h3>⚠️ PENDING ADMINISTRATIVE APPROVAL:</h3>;
+htmlContent += <h3 style='margin-bottom:15px; color:#ef4444;'>⚠️ PENDING ADMINISTRATIVE APPROVAL:</h3>;
 pendingList.forEach(item => {
-htmlContent +=  <article class="news-card" style="border-left-color: #ef4444; background: #1f1818;"> <div class="news-meta"><span class="badge-delay">${item.delay} (PENDING)</span></div> <h2 class="news-title">${item.title}</h2> <p class="news-content">${item.content}</p> <div class="admin-actions"> <button class="approve-btn" onclick="approveItem(${item.id})">Approve & Publish</button> <button class="deny-btn" onclick="denyItem(${item.id})">Deny / Delete</button> </div> </article>;
+htmlContent +=  <article class="news-card" style="border-left-color: #ef4444; background: #1f1818;"> <div class="news-meta"><span class="badge-delay">${item.delay} (PENDING)</span></div> <h2 class="news-title">${item.title}</h2> <p class="news-content">${item.content}</p> <div class="admin-actions"> <button class="approve-btn" onclick="approveItem(${item.id})">Approve</button> <button class="deny-btn" onclick="denyItem(${item.id})">Deny</button> </div> </article>;
 });
 }
 approvedList.forEach(item => {
@@ -209,5 +212,3 @@ htmlContent +=  <article class="news-card user-submitted"> <div class="news-meta
 htmlContent +=  <article class="news-card"> <div class="news-meta"><span class="badge-delay">⌛ 3 Days Ago</span></div> <h2 class="news-title">Local Man Discovers Smartphone "Dark Mode" Option</h2> <p class="news-content">In a stunning revelation that shocked absolutely nobody, a local user reveals they have finally toggled their settings layout over to dark mode.</p> </article>;
 feed.innerHTML = htmlContent;
 }
-
-
