@@ -20,10 +20,10 @@
 
         /* MAIN WEBSITE */
         #main-website {
-            display: none; min-height: 100vh;
+            /* High-quality space photo setup */
             background: linear-gradient(rgba(11, 15, 25, 0.88), rgba(11, 15, 25, 0.88)), 
                         url('https://unsplash.com') no-repeat center center fixed;
-            background-size: cover; padding-bottom: 60px;
+            background-size: cover; min-height: 100vh; padding-bottom: 60px;
         }
 
         /* TICKER */
@@ -134,8 +134,8 @@
         };
 
         function enterWebsite() {
+            // Instantly remove disclaimer overlay view screen entirely
             document.getElementById('disclaimer-screen').style.display = 'none';
-            document.getElementById('main-website').style.display = 'block';
         }
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -165,10 +165,8 @@
         }
 
         // Toggle Admin View to see pending items
-        function toggleAdminView() {
-            adminMode = !adminMode;
-
-      alert(adminMode ? "Admin Mode Active! Scroll down to see items awaiting approval." : "Admin Mode turned off.");
+        function toggleAdminView() {adminMode = !adminMode;
+alert(adminMode ? "Admin Mode Active! Scroll down to see items awaiting approval." : "Admin Mode turned off.");
 renderFeed();
 }
 // Action Handlers
@@ -177,8 +175,8 @@ let pendingList = JSON.parse(localStorage.getItem('pendingNews')) || [];
 let approvedList = JSON.parse(localStorage.getItem('approvedNews')) || [];
 let itemIndex = pendingList.findIndex(x => x.id === id);
 if(itemIndex > -1) {
-approvedList.unshift(pendingList[itemIndex]); // Add to top of live site
-pendingList.splice(itemIndex, 1); // remove from pending
+approvedList.unshift(pendingList[itemIndex]);
+pendingList.splice(itemIndex, 1);
 localStorage.setItem('pendingNews', JSON.stringify(pendingList));
 localStorage.setItem('approvedNews', JSON.stringify(approvedList));
 }
@@ -198,24 +196,18 @@ function renderFeed() {
 const feed = document.getElementById('news-feed');
 let approvedList = JSON.parse(localStorage.getItem('approvedNews')) || [];
 let pendingList = JSON.parse(localStorage.getItem('pendingNews')) || [];
-// Default structural code template
 let htmlContent = ``;
-// If Admin Mode, show pending cards at top
 if (adminMode && pendingList.length > 0) {
 htmlContent += <h3>⚠️ PENDING ADMINISTRATIVE APPROVAL:</h3>;
 pendingList.forEach(item => {
 htmlContent +=  <article class="news-card" style="border-left-color: #ef4444; background: #1f1818;"> <div class="news-meta"><span class="badge-delay">${item.delay} (PENDING)</span></div> <h2 class="news-title">${item.title}</h2> <p class="news-content">${item.content}</p> <div class="admin-actions"> <button class="approve-btn" onclick="approveItem(${item.id})">Approve & Publish</button> <button class="deny-btn" onclick="denyItem(${item.id})">Deny / Delete</button> </div> </article>;
 });
 }
-// Draw Approved Live User Content
 approvedList.forEach(item => {
 htmlContent +=  <article class="news-card user-submitted"> <div class="news-meta"><span class="badge-delay">⏳ ${item.delay}</span></div> <h2 class="news-title">${item.title}</h2> <p class="news-content">${item.content}</p> </article>;
 });
-// Base template default story
 htmlContent +=  <article class="news-card"> <div class="news-meta"><span class="badge-delay">⌛ 3 Days Ago</span></div> <h2 class="news-title">Local Man Discovers Smartphone "Dark Mode" Option</h2> <p class="news-content">In a stunning revelation that shocked absolutely nobody, a local user reveals they have finally toggled their settings layout over to dark mode.</p> </article>;
 feed.innerHTML = htmlContent;
 }
-
-
 
 
