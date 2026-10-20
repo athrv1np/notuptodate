@@ -9,15 +9,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body, html { height: 100%; font-family: 'Segoe UI', sans-serif; background-color: #0b0f19; color: #f3f4f6; overflow-x: hidden; }
 
-        /* DISCLAIMER PAGE OVERLAY */
-        #disclaimer-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #05070c;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; padding: 20px; text-align: center;
-        }
-        .disclaimer-box { max-width: 600px; padding: 40px; background: rgba(255, 255, 255, 0.03); border: 2px solid #ef4444; border-radius: 12px; box-shadow: 0 0 30px rgba(239, 68, 68, 0.2); }
-        .disclaimer-box h1 { font-size: 2.5rem; color: #ef4444; text-transform: uppercase; margin-bottom: 20px; font-weight: 900; }
-        .yes-btn { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border: none; padding: 15px 40px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); }
-
         /* MAIN WEBSITE CONTAINER */
         #main-website {
             background: linear-gradient(rgba(11, 15, 25, 0.88), rgba(11, 15, 25, 0.88)), 
@@ -69,16 +60,7 @@
 </head>
 <body>
 
-    <!-- SCREEN 1: THE DISCLAIMER -->
-    <div id="disclaimer-screen">
-        <div class="disclaimer-box">
-            <h1>Disclaimer</h1>
-            <p><strong>Warning:</strong> The news hosted on this platform is completely outdated and non-recent. You are interacting with the internet's slowest reporting engine. Would you still like to continue?</p>
-            <button class="yes-btn" onclick="enterWebsite()">Yes, take me in</button>
-        </div>
-    </div>
-
-    <!-- SCREEN 2: THE ACTUAL SITE -->
+    <!-- MAIN WEBSITE WORKSPACE -->
     <div id="main-website">
         <div class="ticker-wrap">
             <div class="ticker-title">💥 Breaking (This Week)</div>
@@ -96,7 +78,7 @@
 
         <div class="container">
             <main id="news-feed">
-                <!-- Content injected dynamically -->
+                <!-- Content generated safely by engine script -->
             </main>
         </div>
 
@@ -124,13 +106,6 @@
             renderFeed();
         });
 
-        function enterWebsite() {
-            var screen = document.getElementById('disclaimer-screen');
-            if (screen) {
-                screen.style.setProperty('display', 'none', 'important');
-            }
-        }
-
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
@@ -155,55 +130,67 @@
             renderFeed();
         }
 
-        // PASSWORD PROTECTED ADMIN TOGGLE BLOCK
+        // PASSWORD VALIDATION CONTROLLER
         function toggleAdminView() {
             if (!adminMode) {
-                // Ask user for access token string
-                const passInput = prompt("Enter Administration Password to access dashboard:");
+                const passInput = prompt("Enter Administration Password:");
                 if (passInput === "Prs24.375") {
                     adminMode = true;
-                    alert("Authentication successful. Admin view active!");
+                    alert("Admin dashboard opened.");
                 } else {
-                    alert("Access Denied: Incorrect password configuration.");
+                    alert("Wrong password!");
                     return;
                 }
             } else {
                 adminMode = false;
-                alert("Admin Mode deactivated.");
-}
-renderFeed();
-}
-function approveItem(id) {
-let pendingList = JSON.parse(localStorage.getItem('pendingNews')) || [];
-let approvedList = JSON.parse(localStorage.getItem('approvedNews')) || [];
-let itemIndex = pendingList.findIndex(x => x.id === id);
-if(itemIndex > -1) {
-approvedList.unshift(pendingList[itemIndex]);
-pendingList.splice(itemIndex, 1);
-localStorage.setItem('pendingNews', JSON.stringify(pendingList));
-localStorage.setItem('approvedNews', JSON.stringify(approvedList));
-}
-renderFeed();
-}
-function denyItem(id) {
-let pendingList = JSON.parse(localStorage.getItem('pendingNews')) || [];
-let itemIndex = pendingList.findIndex(x => x.id === id);
-if(itemIndex > -1) {
-pendingList.splice(itemIndex, 1);
-localStorage.setItem('pendingNews', JSON.stringify(pendingList));
-}
-renderFeed();
-}
-function renderFeed() {
-const feed = document.getElementById('news-feed');
-if (!feed) return;
-let approvedList = JSON.parse(localStorage.getItem('approvedNews')) || [];
-let pendingList = JSON.parse(localStorage.getItem('pendingNews')) || [];
-let htmlContent = ``;
-if (adminMode && pendingList.length > 0) {
-htmlContent += <h3 style='margin-bottom:15px; color:#ef4444;'>⚠️ PENDING ADMINISTRATIVE APPROVAL:</h3>;
-pendingList.forEach(item => {
-htmlContent +=  <article class="news-card" style="border-left-color: #ef4444; background: #1f1818;"> <div class="news-meta"><span class="badge-delay">${item.delay} (PENDING)</span></div> <h2 class="news-title">${item.title}</h2> <p class="news-content">${item.content}</p> <div class="admin-actions"> <button class="approve-btn" onclick="approveItem(${item.id})">Approve</button> <button class="deny-btn" onclick="denyItem(${item.id})">Deny</button> </div> </article>;
+                alert("Admin Mode closed.");
+            }
+            renderFeed();
+        }
+
+        function approveItem(id) {
+            let pendingList = JSON.parse(localStorage.getItem('pendingNews')) || [];
+            let approvedList = JSON.parse(localStorage.getItem('approvedNews')) || [];
+            let itemIndex = pendingList.findIndex(x => x.id === id);
+            if(itemIndex > -1) {
+                approvedList.unshift(pendingList[itemIndex]); 
+                pendingList.splice(itemIndex, 1); 
+                localStorage.setItem('pendingNews', JSON.stringify(pendingList));
+                localStorage.setItem('approvedNews', JSON.stringify(approvedList));
+            }
+            renderFeed();
+        }
+
+        function denyItem(id) {
+            let pendingList = JSON.parse(localStorage.getItem('pendingNews')) || [];
+            let itemIndex = pendingList.findIndex(x => x.id === id);
+            if(itemIndex > -1) {
+                pendingList.splice(itemIndex, 1);
+                localStorage.setItem('pendingNews', JSON.stringify(pendingList));
+            }
+            renderFeed();
+        }
+
+        function renderFeed() {
+            const feed = document.getElementById('news-feed');
+            if (!feed) return;
+            
+            let approvedList = JSON.parse(localStorage.getItem('approvedNews')) || [];
+            let pendingList = JSON.parse(localStorage.getItem('pendingNews')) || [];
+            let htmlContent = ``;
+
+            if (adminMode && pendingList.length > 0) {
+                htmlContent += `<h3 style='margin-bottom:15px; color:#ef4444;'>⚠️ PENDING FOR REVIEW:</h3>`;
+                pendingList.forEach(item => {
+                    htmlContent += `
+${item.delay} (PENDING)
+${item.title}
+${item.content}
+
+Approve
+Deny
+
+`;
 });
 }
 approvedList.forEach(item => {
