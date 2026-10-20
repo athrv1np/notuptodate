@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotUpToDate | Yesterday's News, Weeks Later</title>
+    <style>
+        /* BASE & LAYOUT STYLES */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { height: 100%; font-family: 'Segoe UI', sans-serif; background-color: #0b0f19; color: #f3f4f6; overflow-x: hidden; }
+
+        /* DISCLAIMER PAGE */
+        #disclaimer-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #05070c;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; padding: 20px; text-align: center;
+        }
+        .disclaimer-box { max-width: 600px; padding: 40px; background: rgba(255, 255, 255, 0.03); border: 2px solid #ef4444; border-radius: 12px; box-shadow: 0 0 30px rgba(239, 68, 68, 0.2); }
+        .disclaimer-box h1 { font-size: 2.5rem; color: #ef4444; text-transform: uppercase; margin-bottom: 20px; font-weight: 900; }
+        .yes-btn { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border: none; padding: 15px 40px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); }
+
+        /* MAIN WEBSITE */
+        #main-website {
+            display: none; min-height: 100vh;
+            background: linear-gradient(rgba(11, 15, 25, 0.88), rgba(11, 15, 25, 0.88)), 
+                        url('https://unsplash.com') no-repeat center center fixed;
+            background-size: cover; padding-bottom: 60px;
+        }
+
+        /* TICKER */
+        .ticker-wrap { width: 100%; background: linear-gradient(90deg, #ff007f, #7928ca); overflow: hidden; height: 44px; display: flex; align-items: center; }
+        .ticker-title { background: #00ffff; color: #000; font-weight: 900; height: 100%; display: flex; align-items: center; padding: 0 20px; font-size: 0.9rem; text-transform: uppercase; }
+        .ticker { display: inline-block; white-space: nowrap; padding-right: 100%; animation: marquee 25s linear infinite; font-weight: bold; font-size: 1.1rem; color: #fff; }
+        @keyframes marquee { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+
+        /* NAV BAR & BUTTONS */
+        nav { display: flex; justify-content: flex-end; padding: 15px 30px; gap: 15px; }
+        .nav-btn { background: #1f2937; color: #00ffff; border: 1px solid #00ffff; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; }
+        .nav-btn:hover { background: #00ffff; color: #000; }
+        .admin-link { color: #555; font-size: 0.75rem; cursor: pointer; align-self: center; text-decoration: underline; }
+
+        header { text-align: center; padding: 20px 20px 30px 20px; }
+        .logo { font-size: 4rem; font-weight: 900; text-transform: uppercase; background: linear-gradient(to right, #00ffff, #ff007f); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* NEWS MODAL (POPUP BOX) */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: #111827; border: 2px solid #ff007f; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; position: relative; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #ff007f; }
+        .modal h3 { margin-bottom: 15px; color: #ff007f; text-transform: uppercase; }
+        input, textarea { width: 100%; padding: 12px; background: #1f2937; border: 1px solid #374151; border-radius: 6px; color: white; margin-bottom: 15px; font-family: inherit; }
+        .submit-btn { width: 100%; background: #ff007f; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
+
+        /* ARTICLES FEED */
+        .container { max-width: 850px; margin: 0 auto; padding: 0 20px; }
+        .news-card { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(10px); border-radius: 12px; padding: 25px; margin-bottom: 30px; border-left: 6px solid #00ffff; }
+        .news-card.user-submitted { border-left-color: #facc15; }
+        .news-meta { display: flex; gap: 10px; margin-bottom: 12px; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; }
+        .badge-delay { background: #374151; color: #f3f4f6; padding: 3px 8px; border-radius: 4px; }
+        .news-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 12px; color: #e0ffff; }
+        .news-content { color: #d1d5db; line-height: 1.7; }
+
+        /* ADMIN PANEL ROW */
+        .admin-actions { margin-top: 15px; display: flex; gap: 10px; border-top: 1px dashed #374151; padding-top: 15px; }
+        .approve-btn { background: #22c55e; color: black; border: none; padding: 6px 12px; font-weight: bold; cursor: pointer; border-radius: 4px; }
+        .deny-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; font-weight: bold; cursor: pointer; border-radius: 4px; }
+
+        /* FOOTER / CONTACT */
+        footer { border-top: 1px solid #1f2937; padding: 40px 20px; text-align: center; margin-top: 60px; font-size: 0.95rem; color: #9ca3af; }
+        footer a { color: #00ffff; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- SCREEN 1: THE DISCLAIMER -->
+    <div id="disclaimer-screen">
+        <div class="disclaimer-box">
+            <h1>Disclaimer</h1>
+            <p><strong>Warning:</strong> The news hosted on this platform is completely outdated and non-recent. You are interacting with the internet's slowest reporting engine. Would you still like to continue?</p>
+            <button class="yes-btn" onclick="enterWebsite()">Yes, take me in</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: THE ACTUAL SITE -->
+    <div id="main-website">
+        
+        <div class="ticker-wrap">
+            <div class="ticker-title">💥 Breaking (This Week)</div>
+            <div class="ticker">🚨 WEEKLY RECAP: Scientists officially announce that the weekend has successfully ended • Technical issues reported worldwide as millions realize Monday arrived again 🚨</div>
+        </div>
+
+        <nav>
+            <span class="admin-link" onclick="toggleAdminView()">Admin Mode</span>
+            <button class="nav-btn" onclick="openModal('newsModal')">Give News</button>
+        </nav>
+
+        <header>
+            <h1 class="logo">NotUpToDate</h1>
+        </header>
+
+        <div class="container">
+            <!-- News Feed Target -->
+            <main id="news-feed">
+                <!-- Static Default News -->
+                <article class="news-card">
+                    <div class="news-meta"><span class="badge-delay">⌛ 3 Days Ago</span></div>
+                    <h2 class="news-title">Local Man Discovers Smartphone "Dark Mode" Option</h2>
+                    <p class="news-content">In a stunning revelation that shocked absolutely nobody, a local user reveals they have finally toggled their settings layout over to dark mode.</p>
+                </article>
+            </main>
+        </div>
+
+        <footer>
+            <p><strong>Contact Us:</strong> Have ancient reports? Email us directly at <a href="mailto:dahalatharva4@gmail.com">dahalatharva4@gmail.com</a></p>
+        </footer>
+    </div>
+
+    <!-- GIVE NEWS POPUP BOX -->
+    <div id="newsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('newsModal')">&times;</span>
+            <h3>Submit Outdated News</h3>
+            <input type="text" id="subTitle" placeholder="Catchy, Old Headline" required>
+            <input type="text" id="subDelay" placeholder="How many days late? (e.g. 4 Days Ago)" required>
+            <textarea id="subContent" rows="4" placeholder="Write the outdated details here..." required></textarea>
+            <button class="submit-btn" onclick="submitNews()">Send to Admin</button>
+        </div>
+    </div>
+
+    <script>
+        let adminMode = false;
+
+        // Load approved and pending news on start
+        window.onload = function() {
+            renderFeed();
+        };
+
+        function enterWebsite() {
+            document.getElementById('disclaimer-screen').style.display = 'none';
+            document.getElementById('main-website').style.display = 'block';
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // User Submits News
+        function submitNews() {
+            const title = document.getElementById('subTitle').value;
+            const delay = document.getElementById('subDelay').value;
+            const content = document.getElementById('subContent').value;
+
+            if(!title || !delay || !content) return alert("Fill out all boxes!");
+
+            let pendingList = JSON.parse(localStorage.getItem('pendingNews')) || [];
+            pendingList.push({ id: Date.now(), title, delay, content });
+            localStorage.setItem('pendingNews', JSON.stringify(pendingList));
+
+            alert("Submitted! News sent to your admin backlog for review.");
+            closeModal('newsModal');
+            
+            // Reset input values
+            document.getElementById('subTitle').value = '';
+            document.getElementById('subDelay').value = '';
+            document.getElementById('subContent').value = '';
+            
+            renderFeed();
+        }
+
+        // Toggle Admin View to see pending items
+        function toggleAdminView() {
+            adminMode = !adminMode;
+
+      alert(adminMode ? "Admin Mode Active! Scroll down to see items awaiting approval." : "Admin Mode turned off.");
+renderFeed();
+}
+// Action Handlers
+function approveItem(id) {
+let pendingList = JSON.parse(localStorage.getItem('pendingNews')) || [];
+let approvedList = JSON.parse(localStorage.getItem('approvedNews')) || [];
+let itemIndex = pendingList.findIndex(x => x.id === id);
+if(itemIndex > -1) {
+approvedList.unshift(pendingList[itemIndex]); // Add to top of live site
+pendingList.splice(itemIndex, 1); // remove from pending
+localStorage.setItem('pendingNews', JSON.stringify(pendingList));
+localStorage.setItem('approvedNews', JSON.stringify(approvedList));
+}
+renderFeed();
+}
+function denyItem(id) {
+let pendingList = JSON.parse(localStorage.getItem('pendingNews')) || [];
+let itemIndex = pendingList.findIndex(x => x.id === id);
+if(itemIndex > -1) {
+pendingList.splice(itemIndex, 1);
+localStorage.setItem('pendingNews', JSON.stringify(pendingList));
+}
+renderFeed();
+}
+// Draw Feed onto the interface
+function renderFeed() {
+const feed = document.getElementById('news-feed');
+let approvedList = JSON.parse(localStorage.getItem('approvedNews')) || [];
+let pendingList = JSON.parse(localStorage.getItem('pendingNews')) || [];
+// Default structural code template
+let htmlContent = ``;
+// If Admin Mode, show pending cards at top
+if (adminMode && pendingList.length > 0) {
+htmlContent += <h3>⚠️ PENDING ADMINISTRATIVE APPROVAL:</h3>;
+pendingList.forEach(item => {
+htmlContent +=  <article class="news-card" style="border-left-color: #ef4444; background: #1f1818;"> <div class="news-meta"><span class="badge-delay">${item.delay} (PENDING)</span></div> <h2 class="news-title">${item.title}</h2> <p class="news-content">${item.content}</p> <div class="admin-actions"> <button class="approve-btn" onclick="approveItem(${item.id})">Approve & Publish</button> <button class="deny-btn" onclick="denyItem(${item.id})">Deny / Delete</button> </div> </article>;
+});
+}
+// Draw Approved Live User Content
+approvedList.forEach(item => {
+htmlContent +=  <article class="news-card user-submitted"> <div class="news-meta"><span class="badge-delay">⏳ ${item.delay}</span></div> <h2 class="news-title">${item.title}</h2> <p class="news-content">${item.content}</p> </article>;
+});
+// Base template default story
+htmlContent +=  <article class="news-card"> <div class="news-meta"><span class="badge-delay">⌛ 3 Days Ago</span></div> <h2 class="news-title">Local Man Discovers Smartphone "Dark Mode" Option</h2> <p class="news-content">In a stunning revelation that shocked absolutely nobody, a local user reveals they have finally toggled their settings layout over to dark mode.</p> </article>;
+feed.innerHTML = htmlContent;
+}
+
+
+
+
